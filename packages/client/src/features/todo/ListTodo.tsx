@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { Button } from "../../components/Button";
 import type { Todo } from "../../store/useTodoStore";
+import { AddTodoModal } from "./AddTodoModal";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 import { EditTodoModal } from "./EditTodoModal";
 
@@ -12,6 +13,7 @@ export function ListTodo() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
 
   // sample data from todo.json
   useEffect(() => {
@@ -47,8 +49,27 @@ export function ListTodo() {
     );
   }
 
+  function addTodo(title: string, description: string | null) {
+    const now = new Date().toISOString();
+    const todo: Todo = {
+      id: crypto.randomUUID(),
+      title,
+      description,
+      done: false,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    setTodosState((todos) => [todo, ...todos]);
+    setVisibleCount((count) => count + 1);
+  }
+
   return (
     <>
+      <header className="todo-header">
+        <h1>Todo</h1>
+        <Button onClick={() => setIsAdding(true)}>Add todo</Button>
+      </header>
       <div id="todo-scroll" className="todo-list">
         <InfiniteScroll
           dataLength={visibleTodos.length}
@@ -108,6 +129,9 @@ export function ListTodo() {
           </ul>
         </InfiniteScroll>
       </div>
+      {isAdding ? (
+        <AddTodoModal onSave={addTodo} onClose={() => setIsAdding(false)} />
+      ) : null}
       {editing ? (
         <EditTodoModal
           key={editing.id}

@@ -41,11 +41,20 @@ main {
 }
 
 h1 {
-  margin: 0 0 1rem;
+  margin: 0;
   font-size: 1.75rem;
   letter-spacing: 0.04em;
-  border-bottom: 2px solid var(--ink);
+}
+
+.todo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
   padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--ink);
+  flex-shrink: 0;
 }
 
 ul {
