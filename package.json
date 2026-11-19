@@ -1,0 +1,52 @@
+{
+  "name": "hiring-fullstack-todo",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Lerna monorepo for the fullstack todo app (client + server)",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "lerna run dev --parallel",
+    "dev:client": "npm run dev -w client",
+    "dev:server": "npm run dev -w server",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f mongodb",
+    "build": "lerna run build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css,html,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^26.6.6",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.8",
+    "globals": "^17.14.0",
+    "husky": "^9.1.7",
+    "lerna": "^10.1.1",
+    "lint-staged": "^17.6.1",
+    "prettier": "^3.10.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.73.0"
+  }
+}
