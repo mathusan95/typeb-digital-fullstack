@@ -19,7 +19,7 @@ const PAGE_SIZE = 8;
 
 export function ListTodo() {
   const [todosState, setTodosState] = useState<Todo[]>([]);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [hasMore, setHasMore] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -30,8 +30,9 @@ export function ListTodo() {
   async function loadTodos() {
     setErrorMessage(null);
     try {
-      const todos = await fetchTodos();
-      setTodosState(todos);
+      const page = await fetchTodos(0, PAGE_SIZE);
+      setTodosState(page.items);
+      setHasMore(page.hasMore);
     } catch (error: unknown) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -42,10 +43,11 @@ export function ListTodo() {
   useEffect(() => {
     let cancelled = false;
 
-    fetchTodos()
-      .then((todos) => {
+    fetchTodos(0, PAGE_SIZE)
+      .then((page) => {
         if (!cancelled) {
-          setTodosState(todos);
+          setTodosState(page.items);
+          setHasMore(page.hasMore);
         }
       })
       .catch((error: unknown) => {
@@ -66,8 +68,16 @@ export function ListTodo() {
 
   const deleting = todosState.find((todo) => todo.id === deletingId) ?? null;
   const editing = todosState.find((todo) => todo.id === editingId) ?? null;
-  const visibleTodos = todosState.slice(0, visibleCount);
-  const hasMore = visibleCount < todosState.length;
+
+  async function loadMore() {
+    try {
+      const page = await fetchTodos(todosState.length, PAGE_SIZE);
+      setTodosState((todos) => [...todos, ...page.items]);
+      setHasMore(page.hasMore);
+    } catch (error: unknown) {
+      setErrorMessage(getErrorMessage(error));
+    }
+  }
 
   async function deleteTodo(id: string) {
     try {
@@ -114,7 +124,6 @@ export function ListTodo() {
     try {
       const created = await createTodo(title, description);
       setTodosState((todos) => [created, ...todos]);
-      setVisibleCount((count) => count + 1);
       setErrorMessage(null);
       toast.show("Todo created");
     } catch (error: unknown) {
@@ -143,15 +152,15 @@ export function ListTodo() {
       {isLoading ? <p>Loading todos…</p> : null}
       <div id="todo-scroll" className="todo-list">
         <InfiniteScroll
-          dataLength={visibleTodos.length}
-          next={() => setVisibleCount((count) => count + PAGE_SIZE)}
+          dataLength={todosState.length}
+          next={() => void loadMore()}
           hasMore={hasMore}
           loader={<p>Loading…</p>}
           endMessage={<p>No more todos</p>}
           scrollableTarget="todo-scroll"
         >
           <ul>
-            {visibleTodos.map((todo) => (
+            {todosState.map((todo) => (
               <li key={todo.id} className="todo-row">
                 <div
                   className={todo.done ? "todo-copy todo-done" : "todo-copy"}
