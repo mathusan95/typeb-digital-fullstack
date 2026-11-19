@@ -32,6 +32,7 @@ hiring-fullstack-todo/
 | `npm run db:up`      | Start MongoDB in Docker             |
 | `npm run db:down`    | Stop MongoDB                        |
 | `npm run db:logs`    | Tail MongoDB container logs         |
+| `npm run db:seed`    | Replace todos with 50 sample rows   |
 
 ## Database
 
@@ -44,6 +45,12 @@ npm run dev:server
 ```
 
 The server connects to `mongodb://127.0.0.1:27017/todo`. `/health` reports `db: "connected"` when the container is up.
+
+```bash
+npm run db:seed
+```
+
+That clears `todos` and inserts **Todo 1** … **Todo 50** (for infinite-scroll checks). Todo 1 is listed first.
 
 Husky runs `lint-staged` on commit: ESLint + Prettier on staged files.
 
