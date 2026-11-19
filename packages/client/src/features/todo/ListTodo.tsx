@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { Button } from "../../components/Button";
+import { Loading } from "../../components/Loading";
 import { useToast } from "../../components/Toast";
 import type { Todo } from "../../store/useTodoStore";
 import { AddTodoModal } from "./AddTodoModal";
@@ -24,6 +25,7 @@ export function ListTodo() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const toast = useToast();
 
@@ -83,15 +85,16 @@ export function ListTodo() {
     try {
       await deleteTodoApi(id);
       setTodosState((todos) => todos.filter((todo) => todo.id !== id));
-      setDeletingId(null);
       setErrorMessage(null);
       toast.show("Todo deleted");
     } catch (error: unknown) {
       setErrorMessage(getErrorMessage(error));
+      throw error;
     }
   }
 
   async function setTodoDone(id: string) {
+    setBusyId(id);
     try {
       const updated = await toggleTodoDone(id);
       setTodosState((todos) =>
@@ -100,6 +103,8 @@ export function ListTodo() {
       setErrorMessage(null);
     } catch (error: unknown) {
       setErrorMessage(getErrorMessage(error));
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -117,6 +122,7 @@ export function ListTodo() {
       toast.show("Todo updated");
     } catch (error: unknown) {
       setErrorMessage(getErrorMessage(error));
+      throw error;
     }
   }
 
@@ -128,6 +134,7 @@ export function ListTodo() {
       toast.show("Todo created");
     } catch (error: unknown) {
       setErrorMessage(getErrorMessage(error));
+      throw error;
     }
   }
 
@@ -149,13 +156,21 @@ export function ListTodo() {
           </Button>
         </div>
       ) : null}
-      {isLoading ? <p>Loading todos…</p> : null}
+      {isLoading ? (
+        <div className="loading-block">
+          <Loading label="Loading todos…" />
+        </div>
+      ) : null}
       <div id="todo-scroll" className="todo-list">
         <InfiniteScroll
           dataLength={todosState.length}
           next={() => void loadMore()}
           hasMore={hasMore}
-          loader={<p>Loading…</p>}
+          loader={
+            <div className="loading-block">
+              <Loading label="Loading more…" />
+            </div>
+          }
           endMessage={<p>No more todos</p>}
           scrollableTarget="todo-scroll"
         >
@@ -183,24 +198,30 @@ export function ListTodo() {
                     <Button
                       icon="↺"
                       aria-label="Mark undone"
+                      loading={busyId === todo.id}
+                      disabled={busyId !== null && busyId !== todo.id}
                       onClick={() => void setTodoDone(todo.id)}
                     />
                   ) : (
                     <Button
                       icon="✓"
                       aria-label="Mark done"
+                      loading={busyId === todo.id}
+                      disabled={busyId !== null && busyId !== todo.id}
                       onClick={() => void setTodoDone(todo.id)}
                     />
                   )}
                   <Button
                     icon="✎"
                     aria-label="Edit"
+                    disabled={busyId === todo.id}
                     onClick={() => setEditingId(todo.id)}
                   />
                   <Button
                     icon="✕"
                     aria-label="Delete"
                     className="btn-danger"
+                    disabled={busyId === todo.id}
                     onClick={() => setDeletingId(todo.id)}
                   />
                 </div>
@@ -214,7 +235,7 @@ export function ListTodo() {
       </div>
       {isAdding ? (
         <AddTodoModal
-          onSave={(title, description) => void addTodo(title, description)}
+          onSave={(title, description) => addTodo(title, description)}
           onClose={() => setIsAdding(false)}
         />
       ) : null}
