@@ -41,11 +41,43 @@ main {
 }
 
 h1 {
-  margin: 0 0 1rem;
+  margin: 0;
   font-size: 1.75rem;
   letter-spacing: 0.04em;
-  border-bottom: 2px solid var(--ink);
+}
+
+.todo-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
   padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--ink);
+  flex-shrink: 0;
+}
+
+.todo-footer {
+  flex-shrink: 0;
+  padding-top: 1rem;
+  margin-top: 0.75rem;
+  border-top: 2px solid var(--ink);
+  background: var(--paper);
+}
+
+.todo-footer button {
+  width: 100%;
+}
+
+.todo-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  color: #8b1515;
+  background: #f4d0c8;
+  border: 2px solid #8b1515;
+  flex-shrink: 0;
 }
 
 ul {
@@ -137,6 +169,18 @@ button:active {
   color: #8b1515;
   background: #f4d0c8;
   border-color: #8b1515;
+}
+
+.btn-primary {
+  color: #f4efe4;
+  background: #2f5d32;
+  border-color: #1a1208;
+}
+
+.btn-muted {
+  color: #4a4033;
+  background: #ddd0b4;
+  border-color: #6b5a3e;
 }
 
 .modal-backdrop {

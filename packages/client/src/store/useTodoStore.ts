@@ -1,13 +1,12 @@
 import { create } from "zustand";
-import { Timestamp } from "mongodb";
 
 export type Todo = {
   id: string;
   title: string;
   description: string | null;
   done: boolean;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: string;
+  updatedAt: string;
 };
 
 type TodoState = {

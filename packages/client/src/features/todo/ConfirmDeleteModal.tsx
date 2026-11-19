@@ -20,7 +20,9 @@ export function ConfirmDeleteModal({
         <Button className="btn-danger" onClick={onConfirm}>
           Delete
         </Button>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button className="btn-muted" onClick={onClose}>
+          Cancel
+        </Button>
       </div>
     </Modal>
   );

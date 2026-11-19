@@ -2,8 +2,17 @@ import { useEffect, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { Button } from "../../components/Button";
 import type { Todo } from "../../store/useTodoStore";
+import { AddTodoModal } from "./AddTodoModal";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 import { EditTodoModal } from "./EditTodoModal";
+import {
+  createTodo,
+  deleteTodoApi,
+  fetchTodos,
+  getErrorMessage,
+  toggleTodoDone,
+  updateTodoApi,
+} from "./todoApi";
 
 const PAGE_SIZE = 8;
 
@@ -12,12 +21,45 @@ export function ListTodo() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // sample data from todo.json
+  async function loadTodos() {
+    setErrorMessage(null);
+    try {
+      const todos = await fetchTodos();
+      setTodosState(todos);
+    } catch (error: unknown) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   useEffect(() => {
-    fetch("/todo.json")
-      .then((res) => res.json())
-      .then((data: Todo[]) => setTodosState(data));
+    let cancelled = false;
+
+    fetchTodos()
+      .then((todos) => {
+        if (!cancelled) {
+          setTodosState(todos);
+        }
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setErrorMessage(getErrorMessage(error));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const deleting = todosState.find((todo) => todo.id === deletingId) ?? null;
@@ -25,30 +67,75 @@ export function ListTodo() {
   const visibleTodos = todosState.slice(0, visibleCount);
   const hasMore = visibleCount < todosState.length;
 
-  // delete todo
-  function deleteTodo(id: string) {
-    setTodosState((todos) => todos.filter((todo) => todo.id !== id));
-    setDeletingId(null);
+  async function deleteTodo(id: string) {
+    try {
+      await deleteTodoApi(id);
+      setTodosState((todos) => todos.filter((todo) => todo.id !== id));
+      setDeletingId(null);
+      setErrorMessage(null);
+    } catch (error: unknown) {
+      setErrorMessage(getErrorMessage(error));
+    }
   }
 
-  // mark todo as done or not done
-  function setTodoDone(id: string, done: boolean) {
-    setTodosState((todos) =>
-      todos.map((todo) => (todo.id === id ? { ...todo, done } : todo)),
-    );
+  async function setTodoDone(id: string) {
+    try {
+      const updated = await toggleTodoDone(id);
+      setTodosState((todos) =>
+        todos.map((todo) => (todo.id === id ? updated : todo)),
+      );
+      setErrorMessage(null);
+    } catch (error: unknown) {
+      setErrorMessage(getErrorMessage(error));
+    }
   }
 
-  // update todo title and description
-  function updateTodo(id: string, title: string, description: string | null) {
-    setTodosState((todos) =>
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, title, description } : todo,
-      ),
-    );
+  async function updateTodo(
+    id: string,
+    title: string,
+    description: string | null,
+  ) {
+    try {
+      const updated = await updateTodoApi(id, title, description);
+      setTodosState((todos) =>
+        todos.map((todo) => (todo.id === id ? updated : todo)),
+      );
+      setErrorMessage(null);
+    } catch (error: unknown) {
+      setErrorMessage(getErrorMessage(error));
+    }
+  }
+
+  async function addTodo(title: string, description: string | null) {
+    try {
+      const created = await createTodo(title, description);
+      setTodosState((todos) => [created, ...todos]);
+      setVisibleCount((count) => count + 1);
+      setErrorMessage(null);
+    } catch (error: unknown) {
+      setErrorMessage(getErrorMessage(error));
+    }
   }
 
   return (
     <>
+      <header className="todo-header">
+        <h1>Todo</h1>
+      </header>
+      {errorMessage ? (
+        <div className="todo-error" role="alert">
+          <span>{errorMessage}</span>
+          <Button
+            onClick={() => {
+              setIsLoading(true);
+              void loadTodos();
+            }}
+          >
+            Retry
+          </Button>
+        </div>
+      ) : null}
+      {isLoading ? <p>Loading todos…</p> : null}
       <div id="todo-scroll" className="todo-list">
         <InfiniteScroll
           dataLength={visibleTodos.length}
@@ -82,13 +169,13 @@ export function ListTodo() {
                     <Button
                       icon="↺"
                       aria-label="Mark undone"
-                      onClick={() => setTodoDone(todo.id, false)}
+                      onClick={() => void setTodoDone(todo.id)}
                     />
                   ) : (
                     <Button
                       icon="✓"
                       aria-label="Mark done"
-                      onClick={() => setTodoDone(todo.id, true)}
+                      onClick={() => void setTodoDone(todo.id)}
                     />
                   )}
                   <Button
@@ -108,6 +195,15 @@ export function ListTodo() {
           </ul>
         </InfiniteScroll>
       </div>
+      <div className="todo-footer">
+        <Button onClick={() => setIsAdding(true)}>Add todo</Button>
+      </div>
+      {isAdding ? (
+        <AddTodoModal
+          onSave={(title, description) => void addTodo(title, description)}
+          onClose={() => setIsAdding(false)}
+        />
+      ) : null}
       {editing ? (
         <EditTodoModal
           key={editing.id}
