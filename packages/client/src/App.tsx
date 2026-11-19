@@ -1,8 +1,9 @@
+import { ListTodo } from "./features/todo/ListTodo";
+
 export default function App() {
   return (
     <main>
-      <h1>Todo</h1>
-      <p>Client package is ready.</p>
+      <ListTodo todos={[]} />
     </main>
   );
 }

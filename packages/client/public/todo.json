@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1",
+    "title": "test todo",
+    "description": "2 litres",
+    "done": false,
+    "createdAt": "2026-11-19T10:00:00.000Z",
+    "updatedAt": "2026-11-19T10:00:00.000Z"
+  },
+  {
+    "id": "2",
+    "title": "test toddo 3",
+    "description": null,
+    "done": true,
+    "createdAt": "2026-11-19T11:00:00.000Z",
+    "updatedAt": "2026-11-19T12:00:00.000Z"
+  }
+]
