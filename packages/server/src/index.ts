@@ -2,6 +2,7 @@ import cors from "cors";
 import "dotenv/config";
 import express from "express";
 import { connectDb, isDbConnected } from "./db.js";
+import todoRoutes from "./routes/todo.routes.js";
 
 const app = express();
 const port = Number(process.env.PORT ?? 3001);
@@ -17,9 +18,7 @@ app.get("/health", (_req, res) => {
   });
 });
 
-app.get("/api/todos", (_req, res) => {
-  res.json([]);
-});
+app.use("/api/todos", todoRoutes);
 
 async function start(): Promise<void> {
   await connectDb(mongoUri);
