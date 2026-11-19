@@ -3,7 +3,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { Button } from "../../components/Button";
 import { Loading } from "../../components/Loading";
 import { useToast } from "../../components/Toast";
-import type { Todo } from "shared";
+import { useTodoStore } from "../../store/useTodoStore";
 import { AddTodoModal } from "./AddTodoModal";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 import { EditTodoModal } from "./EditTodoModal";
@@ -19,26 +19,33 @@ import {
 const PAGE_SIZE = 8;
 
 export function ListTodo() {
-  const [todosState, setTodosState] = useState<Todo[]>([]);
-  const [hasMore, setHasMore] = useState(false);
+  const todos = useTodoStore((state) => state.todos);
+  const hasMore = useTodoStore((state) => state.hasMore);
+  const isLoading = useTodoStore((state) => state.isLoading);
+  const errorMessage = useTodoStore((state) => state.errorMessage);
+  const setInitialPage = useTodoStore((state) => state.setInitialPage);
+  const appendPage = useTodoStore((state) => state.appendPage);
+  const addTodoToStore = useTodoStore((state) => state.addTodo);
+  const replaceTodo = useTodoStore((state) => state.replaceTodo);
+  const removeTodo = useTodoStore((state) => state.removeTodo);
+  const setLoading = useTodoStore((state) => state.setLoading);
+  const setError = useTodoStore((state) => state.setError);
+
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const toast = useToast();
 
   async function loadTodos() {
-    setErrorMessage(null);
+    setError(null);
     try {
       const page = await fetchTodos(0, PAGE_SIZE);
-      setTodosState(page.items);
-      setHasMore(page.hasMore);
+      setInitialPage(page.items, page.hasMore);
     } catch (error: unknown) {
-      setErrorMessage(getErrorMessage(error));
+      setError(getErrorMessage(error));
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }
 
@@ -48,47 +55,45 @@ export function ListTodo() {
     fetchTodos(0, PAGE_SIZE)
       .then((page) => {
         if (!cancelled) {
-          setTodosState(page.items);
-          setHasMore(page.hasMore);
+          setInitialPage(page.items, page.hasMore);
         }
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          setErrorMessage(getErrorMessage(error));
+          setError(getErrorMessage(error));
         }
       })
       .finally(() => {
         if (!cancelled) {
-          setIsLoading(false);
+          setLoading(false);
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [setError, setInitialPage, setLoading]);
 
-  const deleting = todosState.find((todo) => todo.id === deletingId) ?? null;
-  const editing = todosState.find((todo) => todo.id === editingId) ?? null;
+  const deleting = todos.find((todo) => todo.id === deletingId) ?? null;
+  const editing = todos.find((todo) => todo.id === editingId) ?? null;
 
   async function loadMore() {
     try {
-      const page = await fetchTodos(todosState.length, PAGE_SIZE);
-      setTodosState((todos) => [...todos, ...page.items]);
-      setHasMore(page.hasMore);
+      const skip = useTodoStore.getState().todos.length;
+      const page = await fetchTodos(skip, PAGE_SIZE);
+      appendPage(page.items, page.hasMore);
     } catch (error: unknown) {
-      setErrorMessage(getErrorMessage(error));
+      setError(getErrorMessage(error));
     }
   }
 
   async function deleteTodo(id: string) {
     try {
       await deleteTodoApi(id);
-      setTodosState((todos) => todos.filter((todo) => todo.id !== id));
-      setErrorMessage(null);
+      removeTodo(id);
       toast.show("Todo deleted");
     } catch (error: unknown) {
-      setErrorMessage(getErrorMessage(error));
+      setError(getErrorMessage(error));
       throw error;
     }
   }
@@ -97,12 +102,9 @@ export function ListTodo() {
     setBusyId(id);
     try {
       const updated = await toggleTodoDone(id);
-      setTodosState((todos) =>
-        todos.map((todo) => (todo.id === id ? updated : todo)),
-      );
-      setErrorMessage(null);
+      replaceTodo(updated);
     } catch (error: unknown) {
-      setErrorMessage(getErrorMessage(error));
+      setError(getErrorMessage(error));
     } finally {
       setBusyId(null);
     }
@@ -115,13 +117,10 @@ export function ListTodo() {
   ) {
     try {
       const updated = await updateTodoApi(id, title, description);
-      setTodosState((todos) =>
-        todos.map((todo) => (todo.id === id ? updated : todo)),
-      );
-      setErrorMessage(null);
+      replaceTodo(updated);
       toast.show("Todo updated");
     } catch (error: unknown) {
-      setErrorMessage(getErrorMessage(error));
+      setError(getErrorMessage(error));
       throw error;
     }
   }
@@ -129,11 +128,10 @@ export function ListTodo() {
   async function addTodo(title: string, description: string | null) {
     try {
       const created = await createTodo(title, description);
-      setTodosState((todos) => [created, ...todos]);
-      setErrorMessage(null);
+      addTodoToStore(created);
       toast.show("Todo created");
     } catch (error: unknown) {
-      setErrorMessage(getErrorMessage(error));
+      setError(getErrorMessage(error));
       throw error;
     }
   }
@@ -148,7 +146,7 @@ export function ListTodo() {
           <span>{errorMessage}</span>
           <Button
             onClick={() => {
-              setIsLoading(true);
+              setLoading(true);
               void loadTodos();
             }}
           >
@@ -163,7 +161,7 @@ export function ListTodo() {
       ) : null}
       <div id="todo-scroll" className="todo-list">
         <InfiniteScroll
-          dataLength={todosState.length}
+          dataLength={todos.length}
           next={() => void loadMore()}
           hasMore={hasMore}
           loader={
@@ -175,7 +173,7 @@ export function ListTodo() {
           scrollableTarget="todo-scroll"
         >
           <ul>
-            {todosState.map((todo) => (
+            {todos.map((todo) => (
               <li key={todo.id} className="todo-row">
                 <div
                   className={todo.done ? "todo-copy todo-done" : "todo-copy"}
