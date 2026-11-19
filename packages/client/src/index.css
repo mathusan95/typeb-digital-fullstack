@@ -183,6 +183,35 @@ button:active {
   border-color: #6b5a3e;
 }
 
+.toast-stack {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.toast {
+  min-width: 14rem;
+  padding: 0.7rem 1rem;
+  border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  pointer-events: auto;
+}
+
+.toast-success {
+  color: #1a1208;
+  background: #c5d9c2;
+}
+
+.toast-error {
+  color: #8b1515;
+  background: #f4d0c8;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;

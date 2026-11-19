@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { Button } from "../../components/Button";
+import { useToast } from "../../components/Toast";
 import type { Todo } from "../../store/useTodoStore";
 import { AddTodoModal } from "./AddTodoModal";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
@@ -24,6 +25,7 @@ export function ListTodo() {
   const [isAdding, setIsAdding] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const toast = useToast();
 
   async function loadTodos() {
     setErrorMessage(null);
@@ -73,6 +75,7 @@ export function ListTodo() {
       setTodosState((todos) => todos.filter((todo) => todo.id !== id));
       setDeletingId(null);
       setErrorMessage(null);
+      toast.show("Todo deleted");
     } catch (error: unknown) {
       setErrorMessage(getErrorMessage(error));
     }
@@ -101,6 +104,7 @@ export function ListTodo() {
         todos.map((todo) => (todo.id === id ? updated : todo)),
       );
       setErrorMessage(null);
+      toast.show("Todo updated");
     } catch (error: unknown) {
       setErrorMessage(getErrorMessage(error));
     }
@@ -112,6 +116,7 @@ export function ListTodo() {
       setTodosState((todos) => [created, ...todos]);
       setVisibleCount((count) => count + 1);
       setErrorMessage(null);
+      toast.show("Todo created");
     } catch (error: unknown) {
       setErrorMessage(getErrorMessage(error));
     }

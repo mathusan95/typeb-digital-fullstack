@@ -1,9 +1,12 @@
+import { ToastProvider } from "./components/Toast";
 import { ListTodo } from "./features/todo/ListTodo";
 
 export default function App() {
   return (
-    <main>
-      <ListTodo todos={[]} />
-    </main>
+    <ToastProvider>
+      <main>
+        <ListTodo />
+      </main>
+    </ToastProvider>
   );
 }
