@@ -32,8 +32,20 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
-export function fetchTodos() {
-  return request<Todo[]>("/api/todos");
+export type TodoListPage = {
+  items: Todo[];
+  total: number;
+  skip: number;
+  limit: number;
+  hasMore: boolean;
+};
+
+export function fetchTodos(skip = 0, limit = 8) {
+  const params = new URLSearchParams({
+    skip: String(skip),
+    limit: String(limit),
+  });
+  return request<TodoListPage>(`/api/todos?${params.toString()}`);
 }
 
 export function createTodo(title: string, description: string | null) {

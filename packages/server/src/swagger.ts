@@ -27,16 +27,26 @@ export const openApiDocument = {
       get: {
         tags: ["Todos"],
         summary: "List todos",
-        description: "Newest first (createdAt descending).",
+        description:
+          "Newest first. Paginated with skip and limit for infinite scroll.",
+        parameters: [
+          {
+            name: "skip",
+            in: "query",
+            schema: { type: "integer", minimum: 0, default: 0 },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", minimum: 1, maximum: 50, default: 8 },
+          },
+        ],
         responses: {
           "200": {
-            description: "Todo list",
+            description: "Paginated todo list",
             content: {
               "application/json": {
-                schema: {
-                  type: "array",
-                  items: { $ref: "#/components/schemas/Todo" },
-                },
+                schema: { $ref: "#/components/schemas/TodoListPage" },
               },
             },
           },
@@ -150,6 +160,19 @@ export const openApiDocument = {
           done: { type: "boolean" },
           createdAt: { type: "string", format: "date-time" },
           updatedAt: { type: "string", format: "date-time" },
+        },
+      },
+      TodoListPage: {
+        type: "object",
+        properties: {
+          items: {
+            type: "array",
+            items: { $ref: "#/components/schemas/Todo" },
+          },
+          total: { type: "integer" },
+          skip: { type: "integer" },
+          limit: { type: "integer" },
+          hasMore: { type: "boolean" },
         },
       },
       TodoWrite: {

@@ -23,9 +23,22 @@ function toTodoResponse(todo: {
   };
 }
 
-export async function listTodos(_req: Request, res: Response): Promise<void> {
-  const todos = await TodoModel.find().sort({ createdAt: -1 });
-  res.json(todos.map(toTodoResponse));
+export async function listTodos(req: Request, res: Response): Promise<void> {
+  const skip = Math.max(0, Number(req.query.skip) || 0);
+  const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 8));
+
+  const [todos, total] = await Promise.all([
+    TodoModel.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
+    TodoModel.countDocuments(),
+  ]);
+
+  res.json({
+    items: todos.map(toTodoResponse),
+    total,
+    skip,
+    limit,
+    hasMore: skip + todos.length < total,
+  });
 }
 
 export async function createTodo(
