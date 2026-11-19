@@ -38,8 +38,12 @@ export function EditTodoModal({ todo, onSave, onClose }: EditTodoModalProps) {
           />
         </label>
         <div className="todo-actions">
-          <Button type="submit">Save</Button>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button type="submit" className="btn-primary">
+            Save
+          </Button>
+          <Button className="btn-muted" onClick={onClose}>
+            Cancel
+          </Button>
         </div>
       </form>
     </Modal>
