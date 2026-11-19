@@ -1,13 +1,5 @@
 import { create } from "zustand";
-
-export type Todo = {
-  id: string;
-  title: string;
-  description: string | null;
-  done: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
+import type { Todo } from "shared";
 
 type TodoState = {
   todos: Todo[];

@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import type { Todo, TodoListPage } from "shared";
 import { TodoModel } from "../models/todo.js";
 import type {
   CreateTodoInput,
@@ -12,14 +13,14 @@ function toTodoResponse(todo: {
   done: boolean;
   createdAt: Date;
   updatedAt: Date;
-}) {
+}): Todo {
   return {
     id: todo._id.toString(),
     title: todo.title,
     description: todo.description,
     done: todo.done,
-    createdAt: todo.createdAt,
-    updatedAt: todo.updatedAt,
+    createdAt: todo.createdAt.toISOString(),
+    updatedAt: todo.updatedAt.toISOString(),
   };
 }
 
@@ -32,13 +33,14 @@ export async function listTodos(req: Request, res: Response): Promise<void> {
     TodoModel.countDocuments(),
   ]);
 
-  res.json({
+  const body: TodoListPage = {
     items: todos.map(toTodoResponse),
     total,
     skip,
     limit,
     hasMore: skip + todos.length < total,
-  });
+  };
+  res.json(body);
 }
 
 export async function createTodo(

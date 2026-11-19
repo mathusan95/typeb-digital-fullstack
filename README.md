@@ -9,7 +9,9 @@ hiring-fullstack-todo/
 ├── packages/
 │   ├── client/          # Frontend (Vite + React + TypeScript)
 │   │   └── src/
-│   └── server/          # Backend (Express + TypeScript)
+│   ├── server/          # Backend (Express + TypeScript)
+│   │   └── src/
+│   └── shared/          # API types shared by client and server
 │       └── src/
 ├── docker-compose.yml   # Local MongoDB (Docker)
 ├── lerna.json           # Lerna config (uses npm workspaces)

@@ -1,4 +1,4 @@
-import type { Todo } from "../../store/useTodoStore";
+import type { Todo, TodoListPage, TodoWrite } from "shared";
 
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
@@ -32,14 +32,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
-export type TodoListPage = {
-  items: Todo[];
-  total: number;
-  skip: number;
-  limit: number;
-  hasMore: boolean;
-};
-
 export function fetchTodos(skip = 0, limit = 8) {
   const params = new URLSearchParams({
     skip: String(skip),
@@ -49,9 +41,10 @@ export function fetchTodos(skip = 0, limit = 8) {
 }
 
 export function createTodo(title: string, description: string | null) {
+  const body: TodoWrite = { title, description };
   return request<Todo>("/api/todos", {
     method: "POST",
-    body: JSON.stringify({ title, description }),
+    body: JSON.stringify(body),
   });
 }
 
@@ -60,9 +53,10 @@ export function updateTodoApi(
   title: string,
   description: string | null,
 ) {
+  const body: TodoWrite = { title, description };
   return request<Todo>(`/api/todos/${id}`, {
     method: "PUT",
-    body: JSON.stringify({ title, description }),
+    body: JSON.stringify(body),
   });
 }
 

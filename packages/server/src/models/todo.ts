@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export type Todo = {
+export type TodoDocument = {
   title: string;
   description: string | null;
   done: boolean;
@@ -8,7 +8,7 @@ export type Todo = {
   updatedAt: Date;
 };
 
-const todoSchema = new mongoose.Schema<Todo>(
+const todoSchema = new mongoose.Schema<TodoDocument>(
   {
     title: { type: String, required: true, trim: true },
     description: { type: String, default: null },
