@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Button } from "../../components/Button";
 import { Modal } from "../../components/Modal";
-import type { Todo } from "../../store/useTodoStore";
+import type { Todo } from "shared";
 
 type EditTodoModalProps = {
   todo: Todo;

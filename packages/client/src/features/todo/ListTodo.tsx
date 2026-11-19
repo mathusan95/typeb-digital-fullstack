@@ -3,7 +3,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { Button } from "../../components/Button";
 import { Loading } from "../../components/Loading";
 import { useToast } from "../../components/Toast";
-import type { Todo } from "../../store/useTodoStore";
+import type { Todo } from "shared";
 import { AddTodoModal } from "./AddTodoModal";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 import { EditTodoModal } from "./EditTodoModal";
